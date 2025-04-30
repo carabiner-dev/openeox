@@ -1,0 +1,31 @@
+// SPDX-FileCopyrightText: Copyright 2025 Carabiner Systems, Inc
+// SPDX-License-Identifier: Apache-2.0
+
+syntax = "proto3";
+package openeox.tbd;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/carabiner-dev/openeox/types/tbd";
+
+message Shell {
+    // @gotags: json:"signer"
+    string schema = 1 [json_name = "$schema"];
+    repeated Statement statements = 2;
+}
+
+message Statement {
+    Core core = 1;
+    string productName = 2;
+    string productVersion = 3;
+    string vendorName = 4;
+}
+
+message Core {
+    // @gotags: json:"signer"
+    string schema = 1 [json_name = "$schema"];
+    google.protobuf.Timestamp end_of_life = 2;
+    google.protobuf.Timestamp end_of_security_support = 3;
+    google.protobuf.Timestamp end_of_sales = 4;
+    google.protobuf.Timestamp last_updated = 5;
+}
