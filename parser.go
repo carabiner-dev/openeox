@@ -6,7 +6,6 @@ package openeox
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"reflect"
 
 	"google.golang.org/protobuf/encoding/protojson"
@@ -45,6 +44,7 @@ func detectSchema(data []byte) (reflect.Type, error) {
 	return nil, fmt.Errorf("unknown schema type")
 }
 
+// ParseShell parses a structured shell
 func (p *Parser) ParseShell(data []byte) (*Shell, error) {
 	s := &Shell{}
 	unmarshaller := protojson.UnmarshalOptions{
@@ -57,18 +57,15 @@ func (p *Parser) ParseShell(data []byte) (*Shell, error) {
 	return s, nil
 }
 
-func (p *Parser) ParseCore(r io.Reader) (*Core, error) {
+// ParseCore parses a direct openeox core struct
+func (p *Parser) ParseCore(data []byte) (*Core, error) {
 	c := &Core{}
 	unmarshaller := protojson.UnmarshalOptions{
 		DiscardUnknown: false,
 	}
 
-	data, err := io.ReadAll(r)
-	if err != nil {
-		return nil, fmt.Errorf("reading input: %w", err)
-	}
 	if err := unmarshaller.Unmarshal(data, c); err != nil {
 		return nil, fmt.Errorf("unmarshaling json: %w", err)
 	}
-	return c, err
+	return c, nil
 }
