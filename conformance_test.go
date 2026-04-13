@@ -94,9 +94,9 @@ func TestConformanceParseTBA(t *testing.T) {
 	examplesDir := filepath.Join(repoPath, "eox-core-v-1-0", "examples")
 
 	for _, tc := range []struct {
-		file     string
-		eolTBA   bool
-		eossTBA  bool
+		file    string
+		eolTBA  bool
+		eossTBA bool
 	}{
 		{"oasis_openeox_tc-core-1_0-2025-minimal-tba.json", true, true},
 		{"oasis_openeox_tc-core-1_0-2025-minimal-eol-tba.json", true, false},
