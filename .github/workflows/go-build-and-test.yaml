@@ -6,20 +6,51 @@ name: go-tests
 on:
   pull_request:
     branches: [ "main" ]
+  push:
+    branches: [ "main" ]
   workflow_dispatch: {}
 
+permissions: {}
+
 jobs:
-  test:
+  go-versions:
     runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.matrix.outputs.matrix }}
+      latest: ${{ steps.versions.outputs.GO_MINOR_VERSION_STABLE }}
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
       with:
-          persist-credentials: false
+        persist-credentials: false
+
+    - name: Determine Go versions
+      id: versions
+      uses: carabiner-dev/actions/go/versions@71dcaf2d9b62b4557d7ff76e9ecd3958450a70b2 # v1.1.6
+
+    - name: Build version matrix
+      id: matrix
+      run: |
+        echo "matrix=[\"${{ steps.versions.outputs.GO_MINOR_VERSION_PREVIOUS }}\",\"${{ steps.versions.outputs.GO_MINOR_VERSION_STABLE }}\"]" >> "$GITHUB_OUTPUT"
+
+  test:
+    needs: go-versions
+    permissions:
+      contents: read
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        go-version: ${{ fromJSON(needs.go-versions.outputs.matrix) }}
+
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
 
     - name: Set up Go
       uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
       with:
-        go-version: '1.24'
+        go-version: ${{ matrix.go-version }}
         check-latest: true
         cache: true
 
