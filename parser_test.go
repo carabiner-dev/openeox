@@ -24,14 +24,28 @@ func TestParse(t *testing.T) {
 	statement := s.GetStatements()[0]
 	require.Equal(t, "https://docs.oasis-open.org/openeox/tbd/schema/shell.json", s.GetSchema())
 
-	// Statement:
-	require.Equal(t, "Example Technologies", statement.GetVendorName())
-	require.Equal(t, "Enterprise Server", statement.GetProductName())
-	require.Equal(t, "5.2", statement.GetProductVersion())
+	// Product:
+	product := statement.GetProduct()
+	require.NotNil(t, product)
+	sw := product.GetSoftware()
+	require.NotNil(t, sw)
+	require.Equal(t, "Example Technologies", sw.GetVendorName())
+	require.Equal(t, "Enterprise Server", sw.GetProductName())
+	require.Equal(t, "5.2", sw.GetProductVersion())
 
-	// Core
-	require.Equal(t, time.Date(2025, time.April, 30, 10, 0, 0, 0, time.UTC), statement.GetCore().GetLastUpdated().AsTime())
-	require.Equal(t, time.Date(2027, time.December, 31, 23, 59, 59, 0, time.UTC), statement.GetCore().GetEndOfLife().AsTime())
-	require.Equal(t, time.Date(2026, time.December, 31, 23, 59, 59, 0, time.UTC), statement.GetCore().GetEndOfSales().AsTime())
-	require.Equal(t, time.Date(2027, time.June, 30, 23, 59, 59, 0, time.UTC), statement.GetCore().GetEndOfSecuritySupport().AsTime())
+	// Product Identification Helper:
+	pih := statement.GetProductIdentificationHelper()
+	require.NotNil(t, pih)
+	require.Equal(t, "cpe:2.3:a:example_technologies:enterprise_server:5.2:*:*:*:*:*:*:*", pih.GetCpe())
+	require.Len(t, pih.GetPurls(), 1)
+	require.Equal(t, "pkg:generic/example-technologies/enterprise-server@5.2", pih.GetPurls()[0])
+
+	// Core:
+	core := statement.GetCore()
+	require.Equal(t, "https://docs.oasis-open.org/openeox/v1.0/schema/core.json", core.GetSchema())
+	require.Equal(t, time.Date(2025, time.April, 30, 10, 0, 0, 0, time.UTC), core.GetLastUpdated().AsTime())
+	require.Equal(t, time.Date(2027, time.December, 31, 23, 59, 59, 0, time.UTC), core.GetEndOfLife().GetTimestamp().AsTime())
+	require.Equal(t, time.Date(2026, time.December, 31, 23, 59, 59, 0, time.UTC), core.GetEndOfSales().GetTimestamp().AsTime())
+	require.Equal(t, time.Date(2027, time.June, 30, 23, 59, 59, 0, time.UTC), core.GetEndOfSecuritySupport().GetTimestamp().AsTime())
+	require.Equal(t, time.Date(2020, time.March, 15, 0, 0, 0, 0, time.UTC), core.GetGeneralAvailability().GetTimestamp().AsTime())
 }
