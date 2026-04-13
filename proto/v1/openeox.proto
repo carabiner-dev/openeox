@@ -8,15 +8,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/carabiner-dev/openeox/types/v1";
 
-// EoxTimestamp represents a lifecycle date that can be either a concrete
-// RFC 3339 timestamp or "tba" (to be announced).
-message EoxTimestamp {
-    oneof value {
-        google.protobuf.Timestamp timestamp = 1;
-        bool tba = 2;
-    }
-}
-
 // Shell is the top-level OpenEoX document containing lifecycle statements.
 message Shell {
     // @gotags: json:"$schema"
@@ -28,35 +19,22 @@ message Shell {
 message Statement {
     Core core = 1;
     Product product = 2;
-    ProductIdentificationHelper product_identification_helper = 3;
+    ProductIdentificationHelper product_identification_helper = 3 [json_name = "product_identification_helper"];
 }
 
 // Product identifies what the lifecycle statement applies to.
+// The $schema field discriminates between product types:
+//   - product_software.json: uses product_name, product_version, vendor_name
+//   - product_hardware.json: uses product_name, product_version, vendor_name
+//   - product_hardware_with_software.json: uses hardware and software sub-products
 message Product {
     // @gotags: json:"$schema"
     string schema = 1 [json_name = "$schema"];
-    oneof product {
-        ProductSoftware software = 2;
-        ProductHardware hardware = 3;
-        ProductHardwareWithSoftware hardware_with_software = 4;
-    }
-}
-
-message ProductSoftware {
-    string product_name = 1;
-    string product_version = 2;
-    string vendor_name = 3;
-}
-
-message ProductHardware {
-    string product_name = 1;
-    string product_version = 2;
-    string vendor_name = 3;
-}
-
-message ProductHardwareWithSoftware {
-    ProductHardware hardware = 1;
-    ProductSoftware software = 2;
+    string product_name = 2 [json_name = "product_name"];
+    string product_version = 3 [json_name = "product_version"];
+    string vendor_name = 4 [json_name = "vendor_name"];
+    Product hardware = 5;
+    Product software = 6;
 }
 
 // ProductIdentificationHelper provides machine-readable identifiers for a
@@ -64,15 +42,15 @@ message ProductHardwareWithSoftware {
 message ProductIdentificationHelper {
     string cpe = 1;
     repeated string purls = 2;
-    repeated string sbom_urls = 3;
+    repeated string sbom_urls = 3 [json_name = "sbom_urls"];
     repeated CryptographicHashes hashes = 4;
-    repeated GenericURI x_generic_uris = 5;
+    repeated GenericURI x_generic_uris = 5 [json_name = "x_generic_uris"];
 }
 
 // CryptographicHashes identifies a file by name and its cryptographic hashes.
 message CryptographicHashes {
     string filename = 1;
-    repeated FileHash file_hashes = 2;
+    repeated FileHash file_hashes = 2 [json_name = "file_hashes"];
 }
 
 // FileHash is a single hash value computed over a file.
@@ -88,16 +66,22 @@ message GenericURI {
 }
 
 // Core contains the lifecycle milestone dates (openeox-core v1.0).
+// The eox_timestamp_t fields (end_of_life, end_of_security_support,
+// end_of_sales, general_availability) may be "tba" in the upstream JSON
+// format. The parser transparently maps "tba" to a sentinel far-future
+// timestamp; use IsTBA() to check.
 message Core {
     // @gotags: json:"$schema"
     string schema = 1 [json_name = "$schema"];
 
-    // Required in spec
-    EoxTimestamp end_of_life = 2;
-    EoxTimestamp end_of_security_support = 3;
-    google.protobuf.Timestamp last_updated = 5;
+    // Required in spec: RFC 3339 date-time or "tba"
+    google.protobuf.Timestamp end_of_life = 2 [json_name = "end_of_life"];
+    google.protobuf.Timestamp end_of_security_support = 3 [json_name = "end_of_security_support"];
 
-    // Optional in spec
-    EoxTimestamp end_of_sales = 4;
-    EoxTimestamp general_availability = 6;
+    // Required in spec: always RFC 3339 date-time (never "tba")
+    google.protobuf.Timestamp last_updated = 5 [json_name = "last_updated"];
+
+    // Optional in spec: RFC 3339 date-time or "tba"
+    google.protobuf.Timestamp end_of_sales = 4 [json_name = "end_of_sales"];
+    google.protobuf.Timestamp general_availability = 6 [json_name = "general_availability"];
 }

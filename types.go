@@ -18,11 +18,7 @@ type (
 	Shell                       = latest.Shell
 	Core                        = latest.Core
 	Statement                   = latest.Statement
-	EoxTimestamp                = latest.EoxTimestamp
 	Product                     = latest.Product
-	ProductSoftware             = latest.ProductSoftware
-	ProductHardware             = latest.ProductHardware
-	ProductHardwareWithSoftware = latest.ProductHardwareWithSoftware
 	ProductIdentificationHelper = latest.ProductIdentificationHelper
 	CryptographicHashes         = latest.CryptographicHashes
 	FileHash                    = latest.FileHash

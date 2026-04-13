@@ -3,6 +3,7 @@ module github.com/carabiner-dev/openeox
 go 1.25.9
 
 require (
+	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/protobuf v1.36.11
 )
