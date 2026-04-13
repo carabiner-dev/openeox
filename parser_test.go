@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 func TestParse(t *testing.T) {
@@ -122,4 +123,47 @@ func TestParseSoftwareIdentifiers(t *testing.T) {
 	require.Equal(t, "pkg:npm/%40acme/widget-framework@5.0.0", pih1.GetPurls()[0])
 	require.Len(t, pih1.GetHashes(), 1)
 	require.Equal(t, "widget-framework-5.0.0.tgz", pih1.GetHashes()[0].GetFilename())
+}
+
+func TestParseTBA(t *testing.T) {
+	parser, err := NewParser()
+	require.NoError(t, err)
+
+	// A core document with "tba" lifecycle dates
+	data := []byte(`{
+		"$schema": "https://docs.oasis-open.org/openeox/v1.0/schema/core.json",
+		"end_of_life": "tba",
+		"end_of_security_support": "tba",
+		"last_updated": "2025-07-01T12:00:00Z"
+	}`)
+
+	core, err := parser.ParseCore(data)
+	require.NoError(t, err)
+
+	require.True(t, IsTBA(core.GetEndOfLife()))
+	require.True(t, IsTBA(core.GetEndOfSecuritySupport()))
+	require.False(t, IsTBA(core.GetLastUpdated()))
+	require.Equal(t, time.Date(2025, time.July, 1, 12, 0, 0, 0, time.UTC), core.GetLastUpdated().AsTime())
+}
+
+func TestMarshalTBA(t *testing.T) {
+	core := &Core{
+		Schema:               CoreSchema,
+		EndOfLife:            TBATimestamp(),
+		EndOfSecuritySupport: TBATimestamp(),
+		LastUpdated:          timestamppb.New(time.Date(2025, 7, 1, 12, 0, 0, 0, time.UTC)),
+	}
+
+	data, err := MarshalCore(core)
+	require.NoError(t, err)
+
+	// Round-trip: parse the marshaled output and verify TBA is preserved
+	parser, err := NewParser()
+	require.NoError(t, err)
+	parsed, err := parser.ParseCore(data)
+	require.NoError(t, err)
+
+	require.True(t, IsTBA(parsed.GetEndOfLife()))
+	require.True(t, IsTBA(parsed.GetEndOfSecuritySupport()))
+	require.False(t, IsTBA(parsed.GetLastUpdated()))
 }

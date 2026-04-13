@@ -13,7 +13,6 @@ import (
 
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/stretchr/testify/require"
-	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -85,16 +84,64 @@ func TestConformanceParseCoreExamples(t *testing.T) {
 	}
 }
 
+// TestConformanceParseTBA verifies that "tba" values in upstream examples
+// are parsed into the sentinel timestamp and correctly identified by IsTBA.
+func TestConformanceParseTBA(t *testing.T) {
+	repoPath := upstreamRepoPath(t)
+	parser, err := NewParser()
+	require.NoError(t, err)
+
+	examplesDir := filepath.Join(repoPath, "eox-core-v-1-0", "examples")
+
+	for _, tc := range []struct {
+		file     string
+		eolTBA   bool
+		eossTBA  bool
+	}{
+		{"oasis_openeox_tc-core-1_0-2025-minimal-tba.json", true, true},
+		{"oasis_openeox_tc-core-1_0-2025-minimal-eol-tba.json", true, false},
+		{"oasis_openeox_tc-core-1_0-2025-minimal-eoss-tba.json", false, true},
+		{"oasis_openeox_tc-core-1_0-2025-minimal.json", false, false},
+	} {
+		t.Run(tc.file, func(t *testing.T) {
+			data, err := os.ReadFile(filepath.Join(examplesDir, tc.file))
+			require.NoError(t, err)
+
+			core, err := parser.ParseCore(data)
+			require.NoError(t, err)
+
+			require.Equal(t, tc.eolTBA, IsTBA(core.GetEndOfLife()), "end_of_life TBA mismatch")
+			require.Equal(t, tc.eossTBA, IsTBA(core.GetEndOfSecuritySupport()), "end_of_security_support TBA mismatch")
+			require.False(t, IsTBA(core.GetLastUpdated()), "last_updated must never be TBA")
+		})
+	}
+}
+
+// TestConformanceMarshalTBA verifies that TBA sentinel timestamps are
+// written back as "tba" in the JSON output.
+func TestConformanceMarshalTBA(t *testing.T) {
+	core := &Core{
+		Schema:               CoreSchema,
+		EndOfLife:            TBATimestamp(),
+		EndOfSecuritySupport: TBATimestamp(),
+		LastUpdated:          timestamppb.New(time.Date(2025, 7, 1, 12, 0, 0, 0, time.UTC)),
+	}
+
+	data, err := MarshalCore(core)
+	require.NoError(t, err)
+
+	var raw map[string]interface{}
+	require.NoError(t, json.Unmarshal(data, &raw))
+	require.Equal(t, "tba", raw["end_of_life"])
+	require.Equal(t, "tba", raw["end_of_security_support"])
+}
+
 // TestConformanceGenerateValidateCore creates Core documents using our proto
 // types, marshals them to JSON, and validates the output against the upstream
 // OpenEoX core JSON schema.
 func TestConformanceGenerateValidateCore(t *testing.T) {
 	repoPath := upstreamRepoPath(t)
 	schema := loadCoreSchemaValidator(t, repoPath)
-
-	marshaler := protojson.MarshalOptions{
-		UseProtoNames: true,
-	}
 
 	for _, tc := range []struct {
 		name string
@@ -121,17 +168,26 @@ func TestConformanceGenerateValidateCore(t *testing.T) {
 			},
 		},
 		{
-			name: "same-eol-and-eoss",
+			name: "tba-end-of-life",
 			core: &Core{
 				Schema:               CoreSchema,
-				EndOfLife:            timestamppb.New(time.Date(2027, 12, 31, 12, 0, 0, 0, time.UTC)),
-				EndOfSecuritySupport: timestamppb.New(time.Date(2027, 12, 31, 12, 0, 0, 0, time.UTC)),
-				LastUpdated:          timestamppb.New(time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC)),
+				EndOfLife:            TBATimestamp(),
+				EndOfSecuritySupport: timestamppb.New(time.Date(2028, 6, 30, 23, 59, 59, 0, time.UTC)),
+				LastUpdated:          timestamppb.New(time.Date(2025, 7, 1, 12, 0, 0, 0, time.UTC)),
+			},
+		},
+		{
+			name: "all-tba",
+			core: &Core{
+				Schema:               CoreSchema,
+				EndOfLife:            TBATimestamp(),
+				EndOfSecuritySupport: TBATimestamp(),
+				LastUpdated:          timestamppb.New(time.Date(2025, 7, 1, 12, 0, 0, 0, time.UTC)),
 			},
 		},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			data, err := marshaler.Marshal(tc.core)
+			data, err := MarshalCore(tc.core)
 			require.NoError(t, err)
 
 			var doc interface{}
@@ -146,10 +202,6 @@ func TestConformanceGenerateValidateCore(t *testing.T) {
 func TestConformanceRoundTripShell(t *testing.T) {
 	parser, err := NewParser()
 	require.NoError(t, err)
-
-	marshaler := protojson.MarshalOptions{
-		UseProtoNames: true,
-	}
 
 	shell := &Shell{
 		Schema: Schema,
@@ -192,7 +244,7 @@ func TestConformanceRoundTripShell(t *testing.T) {
 		},
 	}
 
-	data, err := marshaler.Marshal(shell)
+	data, err := MarshalShell(shell)
 	require.NoError(t, err)
 
 	parsed, err := parser.ParseShell(data)
@@ -221,4 +273,45 @@ func TestConformanceRoundTripShell(t *testing.T) {
 	// Core
 	require.Equal(t, time.Date(2029, 12, 31, 23, 59, 59, 0, time.UTC), st.GetCore().GetEndOfLife().AsTime())
 	require.Equal(t, time.Date(2029, 6, 30, 23, 59, 59, 0, time.UTC), st.GetCore().GetEndOfSecuritySupport().AsTime())
+}
+
+// TestConformanceRoundTripTBA verifies that TBA values survive a
+// marshal → parse round trip through the Shell format.
+func TestConformanceRoundTripTBA(t *testing.T) {
+	parser, err := NewParser()
+	require.NoError(t, err)
+
+	shell := &Shell{
+		Schema: Schema,
+		Statements: []*Statement{
+			{
+				Core: &Core{
+					Schema:               CoreSchema,
+					EndOfLife:            TBATimestamp(),
+					EndOfSecuritySupport: TBATimestamp(),
+					LastUpdated:          timestamppb.New(time.Date(2025, 7, 1, 0, 0, 0, 0, time.UTC)),
+				},
+				Product: &Product{
+					Schema:         ProductSoftwareSchema,
+					ProductName:    "Future Product",
+					ProductVersion: "0.1.0",
+					VendorName:     "Test Vendor",
+				},
+				ProductIdentificationHelper: &ProductIdentificationHelper{
+					Purls: []string{"pkg:generic/test-vendor/future-product@0.1.0"},
+				},
+			},
+		},
+	}
+
+	data, err := MarshalShell(shell)
+	require.NoError(t, err)
+
+	parsed, err := parser.ParseShell(data)
+	require.NoError(t, err)
+
+	core := parsed.GetStatements()[0].GetCore()
+	require.True(t, IsTBA(core.GetEndOfLife()))
+	require.True(t, IsTBA(core.GetEndOfSecuritySupport()))
+	require.False(t, IsTBA(core.GetLastUpdated()))
 }
