@@ -16,4 +16,4 @@ plugins:
       - module=github.com/carabiner-dev/openeox
 
 inputs:
-  - directory: proto/tbd
+  - directory: proto/v1
