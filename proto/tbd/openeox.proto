@@ -8,24 +8,96 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/carabiner-dev/openeox/types/tbd";
 
+// EoxTimestamp represents a lifecycle date that can be either a concrete
+// RFC 3339 timestamp or "tba" (to be announced).
+message EoxTimestamp {
+    oneof value {
+        google.protobuf.Timestamp timestamp = 1;
+        bool tba = 2;
+    }
+}
+
+// Shell is the top-level OpenEoX document containing lifecycle statements.
 message Shell {
-    // @gotags: json:"signer"
+    // @gotags: json:"$schema"
     string schema = 1 [json_name = "$schema"];
     repeated Statement statements = 2;
 }
 
+// Statement binds lifecycle data (Core) to a product identity.
 message Statement {
     Core core = 1;
-    string productName = 2;
-    string productVersion = 3;
-    string vendorName = 4;
+    Product product = 2;
+    ProductIdentificationHelper product_identification_helper = 3;
 }
 
-message Core {
-    // @gotags: json:"signer"
+// Product identifies what the lifecycle statement applies to.
+message Product {
+    // @gotags: json:"$schema"
     string schema = 1 [json_name = "$schema"];
-    google.protobuf.Timestamp end_of_life = 2;
-    google.protobuf.Timestamp end_of_security_support = 3;
-    google.protobuf.Timestamp end_of_sales = 4;
+    oneof product {
+        ProductSoftware software = 2;
+        ProductHardware hardware = 3;
+        ProductHardwareWithSoftware hardware_with_software = 4;
+    }
+}
+
+message ProductSoftware {
+    string product_name = 1;
+    string product_version = 2;
+    string vendor_name = 3;
+}
+
+message ProductHardware {
+    string product_name = 1;
+    string product_version = 2;
+    string vendor_name = 3;
+}
+
+message ProductHardwareWithSoftware {
+    ProductHardware hardware = 1;
+    ProductSoftware software = 2;
+}
+
+// ProductIdentificationHelper provides machine-readable identifiers for a
+// product, modeled after CSAF v2.1's product_identification_helper.
+message ProductIdentificationHelper {
+    string cpe = 1;
+    repeated string purls = 2;
+    repeated string sbom_urls = 3;
+    repeated CryptographicHashes hashes = 4;
+    repeated GenericURI x_generic_uris = 5;
+}
+
+// CryptographicHashes identifies a file by name and its cryptographic hashes.
+message CryptographicHashes {
+    string filename = 1;
+    repeated FileHash file_hashes = 2;
+}
+
+// FileHash is a single hash value computed over a file.
+message FileHash {
+    string algorithm = 1;
+    string value = 2;
+}
+
+// GenericURI is a vendor-specific or not-yet-standardized identifier.
+message GenericURI {
+    string namespace = 1;
+    string uri = 2;
+}
+
+// Core contains the lifecycle milestone dates (openeox-core v1.0).
+message Core {
+    // @gotags: json:"$schema"
+    string schema = 1 [json_name = "$schema"];
+
+    // Required in spec
+    EoxTimestamp end_of_life = 2;
+    EoxTimestamp end_of_security_support = 3;
     google.protobuf.Timestamp last_updated = 5;
+
+    // Optional in spec
+    EoxTimestamp end_of_sales = 4;
+    EoxTimestamp general_availability = 6;
 }
