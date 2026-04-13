@@ -2,11 +2,11 @@
 // SPDX-License-Identifier: Apache-2.0
 
 syntax = "proto3";
-package openeox.tbd;
+package openeox.v1;
 
 import "google/protobuf/timestamp.proto";
 
-option go_package = "github.com/carabiner-dev/openeox/types/tbd";
+option go_package = "github.com/carabiner-dev/openeox/types/v1";
 
 // EoxTimestamp represents a lifecycle date that can be either a concrete
 // RFC 3339 timestamp or "tba" (to be announced).
