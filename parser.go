@@ -10,7 +10,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/carabiner-dev/openeox/types/tbd"
+	"github.com/carabiner-dev/openeox/types/v1"
 )
 
 // NewParser creates a new OpenEOX parser
@@ -28,8 +28,8 @@ type schemaFinder struct {
 
 //nolint:unused
 var typeDict = map[string]reflect.Type{
-	"https://docs.oasis-open.org/openeox/tbd/schema/shell.json": reflect.TypeOf(&tbd.Shell{}),
-	"https://docs.oasis-open.org/openeox/tbd/schema/core.json":  reflect.TypeOf(&tbd.Core{}),
+	"https://docs.oasis-open.org/openeox/tbd/schema/shell.json": reflect.TypeOf(&v1.Shell{}),
+	"https://docs.oasis-open.org/openeox/v1.0/schema/core.json": reflect.TypeOf(&v1.Core{}),
 }
 
 //nolint:unused

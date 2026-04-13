@@ -13,10 +13,7 @@
         "endOfSales": {
           "timestamp": "2026-12-31T23:59:59Z"
         },
-        "lastUpdated": "2025-04-30T10:00:00Z",
-        "generalAvailability": {
-          "timestamp": "2020-03-15T00:00:00Z"
-        }
+        "lastUpdated": "2025-04-30T10:00:00Z"
       },
       "product": {
         "$schema": "https://docs.oasis-open.org/openeox/tbd/schema/product_software.json",

@@ -3,17 +3,30 @@
 
 package openeox
 
-import latest "github.com/carabiner-dev/openeox/types/tbd"
+import latest "github.com/carabiner-dev/openeox/types/v1"
 
 const (
 	Schema     = latest.Schema
 	CoreSchema = latest.CoreSchema
+
+	ProductSoftwareSchema             = latest.ProductSoftwareSchema
+	ProductHardwareSchema             = latest.ProductHardwareSchema
+	ProductHardwareWithSoftwareSchema = latest.ProductHardwareWithSoftwareSchema
 )
 
 type (
-	Shell     = latest.Shell
-	Core      = latest.Core
-	Statement = latest.Statement
+	Shell                       = latest.Shell
+	Core                        = latest.Core
+	Statement                   = latest.Statement
+	EoxTimestamp                = latest.EoxTimestamp
+	Product                     = latest.Product
+	ProductSoftware             = latest.ProductSoftware
+	ProductHardware             = latest.ProductHardware
+	ProductHardwareWithSoftware = latest.ProductHardwareWithSoftware
+	ProductIdentificationHelper = latest.ProductIdentificationHelper
+	CryptographicHashes         = latest.CryptographicHashes
+	FileHash                    = latest.FileHash
+	GenericURI                  = latest.GenericURI
 )
 
 func NewShell() *Shell {
