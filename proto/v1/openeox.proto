@@ -8,15 +8,6 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "github.com/carabiner-dev/openeox/types/v1";
 
-// EoxTimestamp represents a lifecycle date that can be either a concrete
-// RFC 3339 timestamp or "tba" (to be announced).
-message EoxTimestamp {
-    oneof value {
-        google.protobuf.Timestamp timestamp = 1;
-        bool tba = 2;
-    }
-}
-
 // Shell is the top-level OpenEoX document containing lifecycle statements.
 message Shell {
     // @gotags: json:"$schema"
@@ -32,31 +23,18 @@ message Statement {
 }
 
 // Product identifies what the lifecycle statement applies to.
+// The $schema field discriminates between product types:
+//   - product_software.json: uses product_name, product_version, vendor_name
+//   - product_hardware.json: uses product_name, product_version, vendor_name
+//   - product_hardware_with_software.json: uses hardware and software sub-products
 message Product {
     // @gotags: json:"$schema"
     string schema = 1 [json_name = "$schema"];
-    oneof product {
-        ProductSoftware software = 2;
-        ProductHardware hardware = 3;
-        ProductHardwareWithSoftware hardware_with_software = 4;
-    }
-}
-
-message ProductSoftware {
-    string product_name = 1;
-    string product_version = 2;
-    string vendor_name = 3;
-}
-
-message ProductHardware {
-    string product_name = 1;
-    string product_version = 2;
-    string vendor_name = 3;
-}
-
-message ProductHardwareWithSoftware {
-    ProductHardware hardware = 1;
-    ProductSoftware software = 2;
+    string product_name = 2;
+    string product_version = 3;
+    string vendor_name = 4;
+    Product hardware = 5;
+    Product software = 6;
 }
 
 // ProductIdentificationHelper provides machine-readable identifiers for a
@@ -93,11 +71,11 @@ message Core {
     string schema = 1 [json_name = "$schema"];
 
     // Required in spec
-    EoxTimestamp end_of_life = 2;
-    EoxTimestamp end_of_security_support = 3;
+    google.protobuf.Timestamp end_of_life = 2;
+    google.protobuf.Timestamp end_of_security_support = 3;
     google.protobuf.Timestamp last_updated = 5;
 
     // Optional in spec
-    EoxTimestamp end_of_sales = 4;
-    EoxTimestamp general_availability = 6;
+    google.protobuf.Timestamp end_of_sales = 4;
+    google.protobuf.Timestamp general_availability = 6;
 }

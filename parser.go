@@ -10,7 +10,7 @@ import (
 
 	"google.golang.org/protobuf/encoding/protojson"
 
-	"github.com/carabiner-dev/openeox/types/v1"
+	v1 "github.com/carabiner-dev/openeox/types/v1"
 )
 
 // NewParser creates a new OpenEOX parser
