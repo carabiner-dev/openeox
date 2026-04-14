@@ -77,6 +77,89 @@ The marshal functions (`MarshalCore`, `MarshalShell`) automatically convert
 sentinel timestamps back to `"tba"` in the JSON output, producing
 spec-compliant documents.
 
+### Building a Document
+
+Here is a complete example that builds an OpenEoX shell document with
+product identification using file hashes:
+
+```go
+shell := &openeox.Shell{
+    Schema: openeox.Schema,
+    Statements: []*openeox.Statement{
+        {
+            Core: &openeox.Core{
+                Schema:               openeox.CoreSchema,
+                EndOfLife:            timestamppb.New(time.Date(2028, 6, 30, 23, 59, 59, 0, time.UTC)),
+                EndOfSecuritySupport: timestamppb.New(time.Date(2028, 3, 31, 23, 59, 59, 0, time.UTC)),
+                EndOfSales:           timestamppb.New(time.Date(2027, 12, 31, 23, 59, 59, 0, time.UTC)),
+                LastUpdated:          timestamppb.Now(),
+            },
+            Product: &openeox.Product{
+                Schema:         openeox.ProductSoftwareSchema,
+                ProductName:    "SecureLib",
+                ProductVersion: "2.1.0",
+                VendorName:     "Acme Corp",
+            },
+            ProductIdentificationHelper: &openeox.ProductIdentificationHelper{
+                Purls: []string{"pkg:generic/acme/securelib@2.1.0"},
+                Hashes: []*openeox.CryptographicHashes{
+                    {
+                        Filename: "securelib-2.1.0.tar.gz",
+                        FileHashes: []*openeox.FileHash{
+                            {
+                                Algorithm: "sha256",
+                                Value:     "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                            },
+                        },
+                    },
+                },
+            },
+        },
+    },
+}
+
+data, err := openeox.MarshalShell(shell)
+```
+
+This produces:
+
+```json
+{
+  "$schema": "https://docs.oasis-open.org/openeox/tbd/schema/shell.json",
+  "statements": [
+    {
+      "core": {
+        "$schema": "https://docs.oasis-open.org/openeox/v1.0/schema/core.json",
+        "end_of_life": "2028-06-30T23:59:59Z",
+        "end_of_security_support": "2028-03-31T23:59:59Z",
+        "end_of_sales": "2027-12-31T23:59:59Z",
+        "last_updated": "2025-04-13T12:00:00Z"
+      },
+      "product": {
+        "$schema": "https://docs.oasis-open.org/openeox/tbd/schema/product_software.json",
+        "product_name": "SecureLib",
+        "product_version": "2.1.0",
+        "vendor_name": "Acme Corp"
+      },
+      "product_identification_helper": {
+        "purls": ["pkg:generic/acme/securelib@2.1.0"],
+        "hashes": [
+          {
+            "filename": "securelib-2.1.0.tar.gz",
+            "file_hashes": [
+              {
+                "algorithm": "sha256",
+                "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}
+```
+
 ### Marshaling
 
 Use the provided marshal functions to produce JSON that conforms to the
