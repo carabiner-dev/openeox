@@ -25,7 +25,7 @@ jobs:
 
     - name: Determine Go versions
       id: versions
-      uses: carabiner-dev/actions/go/versions@71dcaf2d9b62b4557d7ff76e9ecd3958450a70b2 # v1.1.6
+      uses: carabiner-dev/actions/go/versions@360ffa1eb909b0105d4eccb6d6ef337911c34952 # v1.1.6
 
     - name: Build version matrix
       id: matrix
