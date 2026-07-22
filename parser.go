@@ -30,8 +30,9 @@ type schemaFinder struct {
 
 //nolint:unused
 var typeDict = map[string]reflect.Type{
-	"https://docs.oasis-open.org/openeox/tbd/schema/shell.json": reflect.TypeOf(&v1.Shell{}),
-	"https://docs.oasis-open.org/openeox/v1.0/schema/core.json": reflect.TypeOf(&v1.Core{}),
+	v1.Schema:           reflect.TypeOf(&v1.Shell{}),
+	v1.CoreSchema:       reflect.TypeOf(&v1.Core{}),
+	v1.CoreSchemaLegacy: reflect.TypeOf(&v1.Core{}),
 }
 
 //nolint:unused
