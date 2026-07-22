@@ -129,7 +129,7 @@ This produces:
   "statements": [
     {
       "core": {
-        "$schema": "https://docs.oasis-open.org/openeox/v1.0/schema/core.json",
+        "$schema": "https://docs.oasis-open.org/openeox/eox-core/v1.0/schema/core.json",
         "end_of_life": "2028-06-30T23:59:59Z",
         "end_of_security_support": "2028-03-31T23:59:59Z",
         "end_of_sales": "2027-12-31T23:59:59Z",
@@ -175,8 +175,11 @@ data, err := openeox.MarshalShell(shell)
 The module tracks the OASIS OpenEoX specification:
 
 - **openeox-core v1.0**: Fully supported. The `Core` message maps directly
-  to the [upstream JSON schema](https://docs.oasis-open.org/openeox/v1.0/schema/core.json).
+  to the [upstream JSON schema](https://docs.oasis-open.org/openeox/eox-core/v1.0/schema/core.json).
   Conformance is validated against the upstream schema and test data in CI.
+  Documents using the pre-CSD01-RC3 schema URI
+  (`https://docs.oasis-open.org/openeox/v1.0/schema/core.json`, exposed as
+  `CoreSchemaLegacy`) are still accepted when parsing.
 - **openeox-shell**: Tracks the current draft (CSD01). The `Shell`,
   `Statement`, `Product`, and `ProductIdentificationHelper` messages
   follow the draft shell schema structure.

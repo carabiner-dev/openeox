@@ -131,7 +131,7 @@ func TestParseTBA(t *testing.T) {
 
 	// A core document with "tba" lifecycle dates
 	data := []byte(`{
-		"$schema": "https://docs.oasis-open.org/openeox/v1.0/schema/core.json",
+		"$schema": "https://docs.oasis-open.org/openeox/eox-core/v1.0/schema/core.json",
 		"end_of_life": "tba",
 		"end_of_security_support": "tba",
 		"last_updated": "2025-07-01T12:00:00Z"

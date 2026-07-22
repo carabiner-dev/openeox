@@ -31,7 +31,7 @@ func upstreamRepoPath(t *testing.T) string {
 func loadCoreSchemaValidator(t *testing.T, repoPath string) *jsonschema.Schema {
 	t.Helper()
 	metaPath := filepath.Join(repoPath, "eox-core-v-1-0", "schema", "meta.json")
-	corePath := filepath.Join(repoPath, "eox-core-v-1-0", "schema", "eox-core.json")
+	corePath := filepath.Join(repoPath, "eox-core-v-1-0", "schema", "core.json")
 
 	compiler := jsonschema.NewCompiler()
 	compiler.Draft = jsonschema.Draft2020
@@ -43,7 +43,7 @@ func loadCoreSchemaValidator(t *testing.T, repoPath string) *jsonschema.Schema {
 	defer metaFile.Close() //nolint:errcheck
 	require.NoError(t, compiler.AddResource(metaURL, metaFile))
 
-	coreURL := "https://docs.oasis-open.org/openeox/v1.0/schema/core.json"
+	coreURL := CoreSchema
 	coreFile, err := os.Open(corePath)
 	require.NoError(t, err)
 	defer coreFile.Close() //nolint:errcheck

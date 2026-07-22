@@ -6,8 +6,9 @@ package openeox
 import latest "github.com/carabiner-dev/openeox/types/v1"
 
 const (
-	Schema     = latest.Schema
-	CoreSchema = latest.CoreSchema
+	Schema           = latest.Schema
+	CoreSchema       = latest.CoreSchema
+	CoreSchemaLegacy = latest.CoreSchemaLegacy
 
 	ProductSoftwareSchema             = latest.ProductSoftwareSchema
 	ProductHardwareSchema             = latest.ProductHardwareSchema
