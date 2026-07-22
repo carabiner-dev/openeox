@@ -40,6 +40,20 @@ shell, err := parser.ParseShell(data)
 core, err := parser.ParseCore(data)
 ```
 
+Core documents are validated against the upstream OpenEoX core JSON
+schema when parsed; validation errors wrap `openeox.ErrInvalidDocument`.
+Set `Parser.SkipValidation` to parse without validating.
+
+Documents can also be read directly from the file system, a URL or any
+`io.Reader`:
+
+```go
+core, err := parser.ParseCoreFile("product.eox.json")
+core, err := parser.ParseCoreURL(ctx, "https://example.com/product.eox.json")
+core, err := parser.ParseCoreReader(os.Stdin)
+// ... and the equivalent ParseShellFile / ParseShellURL / ParseShellReader
+```
+
 ### Handling "tba" (To Be Announced)
 
 The OpenEoX spec allows lifecycle date fields (`end_of_life`,
@@ -163,11 +177,18 @@ This produces:
 ### Marshaling
 
 Use the provided marshal functions to produce JSON that conforms to the
-upstream OpenEoX schema:
+upstream OpenEoX schema. Object keys are sorted lexicographically, as
+required by the specification's Library conformance profile:
 
 ```go
 data, err := openeox.MarshalCore(core)
 data, err := openeox.MarshalShell(shell)
+
+// String, stream and file system output
+s, err := openeox.MarshalCoreString(core)
+err = openeox.WriteCore(os.Stdout, core)
+err = openeox.WriteCoreFile("product.eox.json", core)
+// ... and the equivalent MarshalShellString / WriteShell / WriteShellFile
 ```
 
 ## Spec Conformance
@@ -180,6 +201,11 @@ The module tracks the OASIS OpenEoX specification:
   Documents using the pre-CSD01-RC3 schema URI
   (`https://docs.oasis-open.org/openeox/v1.0/schema/core.json`, exposed as
   `CoreSchemaLegacy`) are still accepted when parsing.
+  The module targets the specification's **"OpenEoX Core Library"**
+  conformance profile (Conformance Clause 9): parsed core documents are
+  checked against the embedded upstream JSON schema, documents can be read
+  from the file system, URLs and data streams, output keys are sorted, and
+  documents can be written to the file system, strings and data streams.
 - **openeox-shell**: Tracks the current draft (CSD01). The `Shell`,
   `Statement`, `Product`, and `ProductIdentificationHelper` messages
   follow the draft shell schema structure.
